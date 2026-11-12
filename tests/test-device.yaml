@@ -1,0 +1,92 @@
+# Build test for this repository. It uses the component from this checkout (not GitHub) and dummy
+# WiFi details, so it needs no secrets. Never flash this to a real device. From the repo root:
+#   esphome config tests/test-device.yaml
+#   esphome compile tests/test-device.yaml
+
+esphome:
+  name: geotrio-test
+  friendly_name: GEO Trio test
+
+esp32:
+  variant: esp32c6
+  flash_size: 4MB
+  framework:
+    type: esp-idf
+
+logger:
+  tx_buffer_size: 1024
+
+api:
+
+ota:
+  - platform: esphome
+
+wifi:
+  ssid: "test-network"
+  password: "test-password"
+
+external_components:
+  - source:
+      type: local
+      path: ../components
+
+uart:
+  rx_pin: GPIO18
+  baud_rate: 115200
+  rx_buffer_size: 1024
+
+geotrio:
+  log_frames: true
+  gas_cost_decimal_places: 5
+
+binary_sensor:
+  - platform: geotrio
+    meter_connection:
+      name: "Meter connection"
+
+sensor:
+  - platform: geotrio
+    electricity_power:
+      name: "Electricity power"
+    electricity_meter:
+      name: "Electricity meter"
+    electricity_usage_today:
+      name: "Electricity usage today"
+    electricity_usage_this_week:
+      name: "Electricity usage this week"
+    electricity_usage_this_month:
+      name: "Electricity usage this month"
+    electricity_cost_today:
+      name: "Electricity cost today"
+    electricity_cost_this_week:
+      name: "Electricity cost this week"
+    electricity_cost_this_month:
+      name: "Electricity cost this month"
+    electricity_unit_rate:
+      name: "Electricity unit rate"
+    electricity_standing_charge:
+      name: "Electricity standing charge"
+    gas_meter:
+      name: "Gas meter"
+    gas_usage_today:
+      name: "Gas usage today"
+    gas_usage_this_week:
+      name: "Gas usage this week"
+    gas_usage_this_month:
+      name: "Gas usage this month"
+    gas_cost_today:
+      name: "Gas cost today"
+    gas_cost_this_week:
+      name: "Gas cost this week"
+    gas_cost_this_month:
+      name: "Gas cost this month"
+    gas_unit_rate:
+      name: "Gas unit rate"
+    gas_unit_rate_per_cubic_metre:
+      name: "Gas unit rate per m³"
+    gas_standing_charge:
+      name: "Gas standing charge"
+    gas_calorific_value:
+      name: "Gas calorific value"
+    gas_volume_correction:
+      name: "Gas volume correction"

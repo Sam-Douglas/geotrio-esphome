@@ -1,0 +1,14 @@
+# ESPHome build output (firmware, downloaded libraries). Created next to whichever YAML you build.
+.esphome/
+
+# Real WiFi passwords and keys. Only secrets.yaml.example belongs in git.
+secrets.yaml
+
+# Local Python environment with the development tools (recreate it from requirements-dev.txt).
+.venv/
+
+# Python's cache of compiled files.
+__pycache__/
+
+# Output of the host tests and build logs.
+build/

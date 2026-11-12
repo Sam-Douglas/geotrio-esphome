@@ -1,0 +1,102 @@
+# GEO Trio II meter reader on a Seeed Studio XIAO ESP32-C6.
+# Copy this into ESPHome Device Builder (or your ESPHome folder) and put your own values in
+# secrets.yaml (see secrets.yaml.example).
+
+esphome:
+  name: geo-trio-reader
+  friendly_name: GEO Trio Reader
+
+esp32:
+  variant: esp32c6
+  flash_size: 4MB
+  framework:
+    type: esp-idf
+
+logger:
+  # Large enough for one whole meter frame per log line while log_frames is on.
+  tx_buffer_size: 1024
+
+api:
+  encryption:
+    key: !secret geo_trio_api_key
+
+ota:
+  - platform: esphome
+    password: !secret geo_trio_ota_password
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  # If WiFi can't connect, the device starts its own hotspot so you can fix the settings.
+  ap:
+    ssid: GEO Trio Reader Fallback
+    password: !secret geo_trio_fallback_password
+
+captive_portal:
+
+external_components:
+  - source: github://Sam-Douglas/geotrio-esphome@v0.1.0
+    components: [geotrio]
+
+# Display J8 TX pad -> XIAO D10 (GPIO18). Listen only: never add a tx_pin.
+uart:
+  rx_pin: GPIO18
+  baud_rate: 115200
+  # Room for about 90 ms of meter data in case WiFi briefly keeps the processor busy.
+  rx_buffer_size: 1024
+
+geotrio:
+  # Logs every meter message as hex. Useful while setting up; set to false once it all works.
+  log_frames: true
+
+binary_sensor:
+  - platform: geotrio
+    meter_connection:
+      name: "Meter connection"
+
+sensor:
+  - platform: geotrio
+    electricity_power:
+      name: "Electricity power"
+    electricity_meter:
+      name: "Electricity meter"
+    electricity_usage_today:
+      name: "Electricity usage today"
+    electricity_usage_this_week:
+      name: "Electricity usage this week"
+    electricity_usage_this_month:
+      name: "Electricity usage this month"
+    electricity_cost_today:
+      name: "Electricity cost today"
+    electricity_cost_this_week:
+      name: "Electricity cost this week"
+    electricity_cost_this_month:
+      name: "Electricity cost this month"
+    electricity_unit_rate:
+      name: "Electricity unit rate"
+    electricity_standing_charge:
+      name: "Electricity standing charge"
+    gas_meter:
+      name: "Gas meter"
+    gas_usage_today:
+      name: "Gas usage today"
+    gas_usage_this_week:
+      name: "Gas usage this week"
+    gas_usage_this_month:
+      name: "Gas usage this month"
+    gas_cost_today:
+      name: "Gas cost today"
+    gas_cost_this_week:
+      name: "Gas cost this week"
+    gas_cost_this_month:
+      name: "Gas cost this month"
+    gas_unit_rate:
+      name: "Gas unit rate"
+    gas_unit_rate_per_cubic_metre:
+      name: "Gas unit rate per m³"
+    gas_standing_charge:
+      name: "Gas standing charge"
+    gas_calorific_value:
+      name: "Gas calorific value"
+    gas_volume_correction:
+      name: "Gas volume correction"

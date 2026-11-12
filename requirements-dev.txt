@@ -1,0 +1,5 @@
+# Tools for building and testing this repository (not needed to use the component).
+# Install into a virtual environment with Python 3.12 to 3.14:  pip install -r requirements-dev.txt
+esphome==2026.10.2
+# A C++ compiler packaged for pip, used for the host tests on machines without one.
+ziglang==0.17.1
