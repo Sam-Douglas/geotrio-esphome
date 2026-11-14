@@ -12,6 +12,20 @@ esp32:
   framework:
     type: esp-idf
 
+# XIAO ESP32-C6 antenna switch (from Seeed's wiki): GPIO3 low powers the switch and GPIO14 low
+# selects the built-in antenna. Without this the WiFi signal can be very weak.
+switch:
+  - platform: gpio
+    id: antenna_switch_power
+    pin: GPIO3
+    restore_mode: ALWAYS_OFF
+    internal: true
+  - platform: gpio
+    id: antenna_select_external
+    pin: GPIO14
+    restore_mode: ALWAYS_OFF
+    internal: true
+
 logger:
   # Large enough for one whole meter frame per log line while log_frames is on.
   tx_buffer_size: 1024
@@ -40,7 +54,12 @@ external_components:
 
 # Display J8 TX pad -> XIAO D10 (GPIO18). Listen only: never add a tx_pin.
 uart:
-  rx_pin: GPIO18
+  rx_pin:
+    number: GPIO18
+    # Holds the pin at the line's resting level so an unconnected pin doesn't read noise as data.
+    mode:
+      input: true
+      pullup: true
   baud_rate: 115200
   # Room for about 90 ms of meter data in case WiFi briefly keeps the processor busy.
   rx_buffer_size: 1024
