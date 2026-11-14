@@ -138,15 +138,16 @@ std::optional<uint8_t> read_bitmap8_attribute(const uint8_t *data, size_t length
 }
 
 // Finds a cluster tag and the fuel from the endpoint byte after it. Returns the tag position, or
-// -1 if the tag is missing or the endpoint isn't one we know.
-int find_cluster(const uint8_t *frame, size_t length, const uint8_t *tag, bool endpoint_3_is_gas, Fuel &fuel) {
+// -1 if the tag is missing or the endpoint isn't one we know. Gas is endpoint 2 on some
+// installations and 3 on others, for every kind of message.
+int find_cluster(const uint8_t *frame, size_t length, const uint8_t *tag, Fuel &fuel) {
   const int position = find_bytes(frame, length, tag, TAG_LENGTH);
   if (position < 0 || static_cast<size_t>(position) + TAG_LENGTH >= length)
     return -1;
   const uint8_t endpoint = frame[position + TAG_LENGTH];
   if (endpoint == 1) {
     fuel = Fuel::ELECTRICITY;
-  } else if (endpoint == 2 || (endpoint == 3 && endpoint_3_is_gas)) {
+  } else if (endpoint == 2 || endpoint == 3) {
     fuel = Fuel::GAS;
   } else {
     return -1;
@@ -155,7 +156,7 @@ int find_cluster(const uint8_t *frame, size_t length, const uint8_t *tag, bool e
 }
 
 bool decode_metering(const uint8_t *frame, size_t length, FrameContents &contents) {
-  const int tag = find_cluster(frame, length, METERING_TAG, false, contents.fuel);
+  const int tag = find_cluster(frame, length, METERING_TAG, contents.fuel);
   if (tag < 0)
     return false;
   const uint8_t *records = frame + tag + TAG_LENGTH + 1;
@@ -191,7 +192,7 @@ bool decode_metering(const uint8_t *frame, size_t length, FrameContents &content
 }
 
 bool decode_prepayment(const uint8_t *frame, size_t length, FrameContents &contents) {
-  const int tag = find_cluster(frame, length, PREPAYMENT_TAG, false, contents.fuel);
+  const int tag = find_cluster(frame, length, PREPAYMENT_TAG, contents.fuel);
   if (tag < 0)
     return false;
   const uint8_t *records = frame + tag + TAG_LENGTH + 1;
@@ -225,7 +226,7 @@ void decode_publish_tariff_information(const uint8_t *payload, size_t length, Fr
 }
 
 bool decode_price(const uint8_t *frame, size_t length, FrameContents &contents) {
-  const int tag = find_cluster(frame, length, PRICE_TAG, true, contents.fuel);
+  const int tag = find_cluster(frame, length, PRICE_TAG, contents.fuel);
   if (tag < 0 || static_cast<size_t>(tag) + PRICE_MESSAGE_LENGTH_OFFSET + 4 > length)
     return false;
 
