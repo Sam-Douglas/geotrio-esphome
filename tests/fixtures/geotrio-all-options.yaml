@@ -1,37 +1,18 @@
-# Build test for this repository. It uses the component from this checkout (not GitHub) and dummy
-# WiFi details, so it needs no secrets. Never flash this to a real device. From the repo root:
-#   esphome config tests/test-device.yaml
-#   esphome compile tests/test-device.yaml
-
-esphome:
-  name: geotrio-test
-  friendly_name: GEO Trio test
-
-esp32:
-  variant: esp32c6
-  flash_size: 4MB
-  framework:
-    type: esp-idf
-
-logger:
-  tx_buffer_size: 1024
-
-api:
-
-ota:
-  - platform: esphome
-
-wifi:
-  ssid: "test-network"
-  password: "test-password"
+# Setup, not a test: the geotrio part of every board test (every option and sensor), using the
+# component from this checkout. Each tests/boards/test.<target>.yaml includes it and sets ${rx_pin}.
+# The external_components path is relative to the including test file, not this one.
 
 external_components:
   - source:
       type: local
-      path: ../components
+      path: ../../components
 
 uart:
-  rx_pin: GPIO18
+  rx_pin:
+    number: ${rx_pin}
+    mode:
+      input: true
+      pullup: true
   baud_rate: 115200
   rx_buffer_size: 1024
 

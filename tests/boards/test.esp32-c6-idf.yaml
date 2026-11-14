@@ -1,0 +1,28 @@
+# Test: the firmware compiles for an ESP32-C6 with ESP-IDF (e.g. Seeed Studio XIAO ESP32-C6), with
+# every geotrio option and sensor. Never flash this. From the repo root:
+#   esphome compile tests/boards/test.esp32-c6-idf.yaml
+
+substitutions:
+  rx_pin: GPIO18
+
+esphome:
+  name: geotrio-test-esp32-c6
+
+esp32:
+  variant: esp32c6
+  framework:
+    type: esp-idf
+
+logger:
+
+api:
+
+ota:
+  - platform: esphome
+
+wifi:
+  ssid: "test-network"
+  password: "test-password"
+
+packages:
+  geotrio: !include ../fixtures/geotrio-all-options.yaml

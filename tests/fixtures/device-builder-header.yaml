@@ -1,0 +1,29 @@
+# Setup, not a test: stands in for what ESPHome Device Builder generates for a new XIAO ESP32-C6.
+# CI appends examples/geo-trio-reader.yaml (pointed at this checkout) and validates the result, so
+# the snippet users paste stays valid.
+
+esphome:
+  name: geo-trio-reader
+  friendly_name: GEO Trio Reader
+
+esp32:
+  board: seeed_xiao_esp32c6
+  framework:
+    type: esp-idf
+
+logger:
+
+api:
+
+ota:
+  - platform: esphome
+
+wifi:
+  ssid: "test-network"
+  password: "test-password"
+  ap:
+    ssid: "Geo-Trio-Reader Fallback Hotspot"
+    password: "test-password"
+
+captive_portal:
+

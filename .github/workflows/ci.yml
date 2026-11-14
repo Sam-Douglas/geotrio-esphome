@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  decoder-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # The sanitizers fail the test on any out-of-bounds read or undefined behaviour.
+      - name: Build and run decoder tests
+        run: |
+          g++ -std=c++17 -Wall -Wextra -Werror -fsanitize=address,undefined \
+            -I components/geotrio tests/decoder/test_decoder.cpp components/geotrio/decoder.cpp -o test_decoder
+          ./test_decoder
+
+  esphome:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install -r requirements-dev.txt
+
+      - name: Config with a tx_pin is rejected
+        run: |
+          if esphome config tests/config/test_rejects_tx_pin.yaml > output.txt 2>&1; then exit 1; fi
+          grep "must not have a tx_pin" output.txt
+
+      # The example is pasted below Device Builder's YAML, so check it that way, using this checkout.
+      - name: README example is valid
+        run: |
+          cp tests/fixtures/device-builder-header.yaml example.yaml
+          sed "s#github://Sam-Douglas/geotrio-esphome@[^ ]*#{type: local, path: $PWD/components}#" \
+            examples/geo-trio-reader.yaml >> example.yaml
+          esphome config example.yaml
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/esphome
+          key: esp-idf-${{ hashFiles('requirements-dev.txt') }}
+
+      # Compiling also validates the config.
+      - name: Firmware compiles
+        run: esphome compile tests/boards/test.esp32-c6-idf.yaml

@@ -1,15 +1,3 @@
-// Host-side tests for components/geotrio/decoder.cpp. No ESP32 or ESPHome needed.
-//
-//   Run the built-in checks:     decoder_test
-//   Decode frames from a log:    decoder_test my-log.txt
-//
-// In the second form, each line containing "Frame decoded" / "Frame not decoded" (what the
-// component logs with log_frames: true) or a line of plain hex is decoded and printed.
-//
-// The built-in frames are hand-made from the same protocol notes the decoder is based on, so they
-// test the mechanics (unescaping, record parsing, offsets, filters), not that the notes are right.
-// Real frames captured from a display are the only proof of that.
-
 #include <cctype>
 #include <cmath>
 #include <cstdio>
@@ -119,13 +107,22 @@ static void test_gas_metering_frame_has_no_power() {
 }
 
 static void test_scaling_needs_unit_of_measure() {
-  Bytes frame = frame_start(0x02, 1);
-  append_record(frame, 0x0300, 0x30, 0, 1);  // unit of measure: kWh
-  append_record(frame, 0x0301, 0x22, 1, 3);
-  append_record(frame, 0x0302, 0x22, 10000, 3);
-  const FrameContents contents = decode_via_reader(frame);
-  CHECK(contents.multiplier == 1u);
-  CHECK(contents.divisor == 10000u);
+  Bytes with_unit = frame_start(0x02, 1);
+  append_record(with_unit, 0x0300, 0x30, 0, 1);  // unit of measure: kWh
+  append_record(with_unit, 0x0301, 0x22, 1, 3);
+  append_record(with_unit, 0x0302, 0x22, 10000, 3);
+  const FrameContents scaling_frame = decode_via_reader(with_unit);
+  CHECK(scaling_frame.multiplier == 1u);
+  CHECK(scaling_frame.divisor == 10000u);
+
+  // The same multiplier and divisor records without a unit of measure must be ignored.
+  Bytes without_unit = frame_start(0x02, 1);
+  append_record(without_unit, 0x0301, 0x22, 1, 3);
+  append_record(without_unit, 0x0302, 0x22, 10000, 3);
+  const FrameContents other_frame = decode_via_reader(without_unit);
+  CHECK(other_frame.recognised);
+  CHECK(!other_frame.multiplier);
+  CHECK(!other_frame.divisor);
 }
 
 static void test_unknown_endpoint_is_ignored() {

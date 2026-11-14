@@ -1,0 +1,23 @@
+# Test: a uart with a tx_pin must be rejected with "must not have a tx_pin". The display's TX line
+# is shared with its own WiFi module, so this device must only listen. From the repo root:
+#   esphome config tests/config/test_rejects_tx_pin.yaml
+
+esphome:
+  name: geotrio-tx-pin
+
+esp32:
+  variant: esp32c6
+  framework:
+    type: esp-idf
+
+external_components:
+  - source:
+      type: local
+      path: ../../components
+
+uart:
+  rx_pin: GPIO18
+  tx_pin: GPIO17
+  baud_rate: 115200
+
+geotrio:

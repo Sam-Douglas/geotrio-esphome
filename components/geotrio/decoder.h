@@ -1,7 +1,7 @@
 #pragma once
 
 // Everything in this file is plain C++ with no ESPHome dependencies, so it can be compiled and
-// tested on a PC (see tests/decoder_test.cpp). The ESPHome side lives in geotrio.h/.cpp.
+// tested on a PC (see tests/decoder/test_decoder.cpp). The ESPHome side lives in geotrio.h/.cpp.
 //
 // Protocol notes:
 // - The display's Zigbee module talks to its main processor over a 115200 baud UART.
