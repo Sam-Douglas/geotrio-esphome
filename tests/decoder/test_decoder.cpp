@@ -232,7 +232,43 @@ static void test_meter_total_filter() {
   CHECK(filter.accept(10.3));
 }
 
+static Bytes from_hex(const std::string &hex) {
+  Bytes bytes;
+  for (size_t i = 0; i + 1 < hex.size(); i += 2)
+    bytes.push_back(static_cast<uint8_t>(std::stoi(hex.substr(i, 2), nullptr, 16)));
+  return bytes;
+}
+
+// Frames captured from a real display (board T2C0-A-PCB-001_3). Electricity values match what Home
+// Assistant showed at the time; gas uses endpoint 3 on this installation.
+static void test_real_frames() {
+  const FrameContents power = decode_via_reader(from_hex(
+      "8002003D0EB59B00AB01090702010102FA1102B784340008A87F002818BD010004002A920100000000256E066E0000000100002500000000000014000030020002001800"));
+  CHECK(power.recognised && power.fuel == Fuel::ELECTRICITY);
+  CHECK(power.instantaneous_demand == 402);
+  CHECK(power.meter_total == 7210606u);
+
+  const FrameContents usage = decode_via_reader(from_hex(
+      "800200360BB36A00AB01090702010102FA1102B784310000C205002118BC010104002259370030040022AF7801400400234AA80300000A0023FA3F8900"));
+  CHECK(usage.usage[0] == 14169u && usage.usage[1] == 96431u && usage.usage[2] == 239690u);
+
+  const FrameContents electricity_cost = decode_via_reader(from_hex(
+      "8002003C08B1BF00AB01090705010102FA1102B7843A0008A8E0002718BB010000001984001C050025F4E60700000040050025661E80000000300500250E3935000000"));
+  CHECK(electricity_cost.fuel == Fuel::ELECTRICITY && electricity_cost.cost[0] == 517876u);
+
+  const FrameContents gas_meter = decode_via_reader(from_hex(
+      "8002002A4FE09700AB01090702030102000002B784370008A7C3001518D20100000025F0A517000000070000E2FFFFFFFF"));
+  CHECK(gas_meter.recognised && gas_meter.fuel == Fuel::GAS);
+  CHECK(gas_meter.meter_total == 1549808u);
+
+  const FrameContents gas_cost = decode_via_reader(from_hex(
+      "8002004556E5BE00AB01090705030102000002B784340008A7BD003018D4010005001832010500300102050030011C050025770006000000300500253BB02900000040050025F99A51000000"));
+  CHECK(gas_cost.recognised && gas_cost.fuel == Fuel::GAS);
+  CHECK(gas_cost.cost[0] == 393335u && gas_cost.cost[1] == 2732091u && gas_cost.cost[2] == 5348089u);
+}
+
 static int run_built_in_tests() {
+  test_real_frames();
   test_frame_reader_unescapes();
   test_metering_frame();
   test_gas_metering_frame_has_no_power();
